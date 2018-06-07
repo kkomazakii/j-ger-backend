@@ -1,11 +1,19 @@
 (ns heroku.core
-  (:require [org.httpkit.server :as http])
+  (:require [org.httpkit.server :as http]
+            [heroku.models.movies :as movies]
+            [clojure.data.json :as json]
+            [compojure.core :refer :all]
+            [ring.middleware.json :refer [wrap-json-response]]
+            [ring.util.response :refer [response]])
   (:gen-class))
 
-(defn app [req]
-  {:status  200
-   :headers {"Content-Type" "application/json"}
-   :body    "{\"url\": \"https://filmarks.com/movies/71657\"}"})
+(defroutes all-routes
+           (GET "/" []
+                (let [v (movies/get-paths)]
+                  (response {:url (movies/random-movie v)}))))
+
+(def app
+  (wrap-json-response all-routes))
 
 (defonce server (atom nil))
 
@@ -17,8 +25,8 @@
     (reset! server nil)))
 
 (defn -main
-  "I don't do a whole lot ... yet."
   [& args]
+  (println "server started...")
   (reset! server (http/run-server #'app {:port (if-let [p (System/getenv "PORT")]
                                                  (Integer/parseInt p)
                                                  8080)})))
