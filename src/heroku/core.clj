@@ -19,4 +19,6 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (reset! server (http/run-server #'app {:port 8080})))
+  (reset! server (http/run-server #'app {:port (if-let [p (System/getenv "PORT")]
+                                                 (Integer/parseInt p)
+                                                 8080)})))
